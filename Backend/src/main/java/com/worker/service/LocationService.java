@@ -8,6 +8,7 @@ import com.worker.repository.UserRepository;
 import com.worker.repository.WorkerProfileRepository;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -44,18 +45,23 @@ public class LocationService {
 	public List<WorkerProfile> getNearbyWorkers(double lat, double lng, Long categoryId, double radiusKm) {
 		return workerProfileRepository.findByCategoryIdAndIsAvailableTrue(categoryId)
 				.stream()
-				.filter(worker -> isWorkerWithinRadius(worker, lat, lng, radiusKm))
+				.map(worker -> toWorkerDistance(worker, lat, lng))
+				.flatMap(Optional::stream)
+				.filter(workerDistance -> workerDistance.distanceKm() <= radiusKm)
+				.sorted((left, right) -> Double.compare(left.distanceKm(), right.distanceKm()))
+				.map(WorkerDistance::worker)
 				.toList();
 	}
 
-	private boolean isWorkerWithinRadius(WorkerProfile worker, double lat, double lng, double radiusKm) {
+	private Optional<WorkerDistance> toWorkerDistance(WorkerProfile worker, double lat, double lng) {
 		return locationRepository.findLatestLocationByUserId(worker.getUser().getId())
-				.map(location -> calculateDistanceKm(
+				.map(location -> new WorkerDistance(
+						worker,
+						calculateDistanceKm(
 						lat,
 						lng,
 						location.getLatitude().doubleValue(),
-						location.getLongitude().doubleValue()) <= radiusKm)
-				.orElse(false);
+						location.getLongitude().doubleValue())));
 	}
 
 	private double calculateDistanceKm(double lat1, double lng1, double lat2, double lng2) {
@@ -67,5 +73,8 @@ public class LocationService {
 		double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
 		return EARTH_RADIUS_KM * c;
+	}
+
+	private record WorkerDistance(WorkerProfile worker, double distanceKm) {
 	}
 }

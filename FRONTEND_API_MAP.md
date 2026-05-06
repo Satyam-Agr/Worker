@@ -2,7 +2,7 @@
 
 Base URL for local development: `http://localhost:8080`
 
-The backend currently exposes REST routes only. There is no authentication token flow yet, so frontend calls do not need an `Authorization` header.
+The backend currently exposes REST routes only. Login is validated through Spring Security and creates a server-side session (`JSESSIONID` cookie). The API does not issue JWT tokens.
 
 ## Seeded Data In Current Database
 
@@ -102,7 +102,87 @@ Success response: HTTP `201`
 
 Notes:
 
-Registering a user with role `WORKER` creates only the user row. The current API has no route to create a `WorkerProfile`; seeded workers already have profiles.
+Registering a user with role `WORKER` creates only the user row. Use `POST /worker/profile/create` to create that worker's profile.
+
+### Login By Phone
+
+`POST /auth/login`
+
+Authenticates using Spring Security with phone as the login identifier.
+
+Request body:
+
+```json
+{
+  "phone": "9100000001"
+}
+```
+
+Required fields:
+
+| field | type | accepted values |
+| --- | --- | --- |
+| phone | string | non-empty, must exist in `users.phone` |
+
+Success response: HTTP `200`
+
+```json
+{
+  "createdAt": "2026-05-06T13:10:00",
+  "updatedAt": "2026-05-06T13:10:00",
+  "id": 6,
+  "name": "Neha Gupta",
+  "phone": "9100000001",
+  "role": "CUSTOMER",
+  "language": "en"
+}
+```
+
+### Logout
+
+`POST /auth/logout`
+
+Clears Spring Security context and invalidates the current session.
+
+Request body:
+
+None
+
+Success response: HTTP `200`
+
+```json
+{
+  "message": "Logged out successfully"
+}
+```
+
+### Get All Categories
+
+`GET /category/all`
+
+Returns all categories.
+
+Success response: HTTP `200`
+
+```json
+[
+  {
+    "id": 1,
+    "name": "Cleaner",
+    "basePrice": 500.00
+  },
+  {
+    "id": 2,
+    "name": "Electrician",
+    "basePrice": 750.00
+  },
+  {
+    "id": 3,
+    "name": "Loader",
+    "basePrice": 600.00
+  }
+]
+```
 
 ### Set Worker Availability
 
@@ -188,6 +268,95 @@ Success response: HTTP `200`
     "available": true
   }
 ]
+```
+
+### Get Nearby Workers
+
+`GET /worker/nearby?lat={lat}&lng={lng}&categoryId={categoryId}&radiusKm={radiusKm}`
+
+Returns available workers in the given category, filtered by radius and sorted by nearest distance first.
+
+Query params:
+
+| param | type | accepted values |
+| --- | --- | --- |
+| lat | number | latitude, usually `-90.0` to `90.0` |
+| lng | number | longitude, usually `-180.0` to `180.0` |
+| categoryId | number | existing category id |
+| radiusKm | number | distance in kilometers |
+
+Example:
+
+`GET /worker/nearby?lat=28.6139&lng=77.2090&categoryId=1&radiusKm=10`
+
+Success response: HTTP `200`
+
+```json
+[
+  {
+    "id": 1,
+    "user": {
+      "id": 1,
+      "name": "Amit Kumar",
+      "phone": "9000000001",
+      "role": "WORKER",
+      "language": "en"
+    },
+    "category": {
+      "id": 1,
+      "name": "Cleaner",
+      "basePrice": 500.00
+    },
+    "rating": 0.0,
+    "totalJobs": 0,
+    "available": true
+  }
+]
+```
+
+### Create Worker Profile
+
+`POST /worker/profile/create`
+
+Creates a worker profile for a user with role `WORKER`.
+
+Request body:
+
+```json
+{
+  "userId": 8,
+  "categoryId": 1
+}
+```
+
+Required fields:
+
+| field | type | accepted values |
+| --- | --- | --- |
+| userId | number | existing user id with role `WORKER` |
+| categoryId | number | existing category id |
+
+Success response: HTTP `201`
+
+```json
+{
+  "id": 6,
+  "user": {
+    "id": 8,
+    "name": "New Worker",
+    "phone": "9999999998",
+    "role": "WORKER",
+    "language": "en"
+  },
+  "category": {
+    "id": 1,
+    "name": "Cleaner",
+    "basePrice": 500.00
+  },
+  "rating": 0.0,
+  "totalJobs": 0,
+  "available": false
+}
 ```
 
 ### Create Job
@@ -373,8 +542,5 @@ The current backend does not expose these endpoints:
 
 | needed by frontend | current workaround |
 | --- | --- |
-| List categories | Use seeded category IDs from this document |
-| Login by phone | Use known seeded user IDs, or register and keep returned user id |
-| Create worker profile for a newly registered worker | Use seeded workers |
-| Get nearby workers by latitude/longitude | Service method exists, but no controller route exists |
 | Create/list reviews | Model and repository exist, but no controller route exists |
+| Auth token issuance (JWT/session cookie) | Keep user object client-side after login |

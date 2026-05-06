@@ -1,7 +1,9 @@
 package com.worker.controller;
 
 import com.worker.dto.WorkerAvailabilityRequest;
+import com.worker.dto.WorkerProfileCreateRequest;
 import com.worker.model.WorkerProfile;
+import com.worker.service.LocationService;
 import com.worker.service.WorkerService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -18,9 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class WorkerController {
 
 	private final WorkerService workerService;
+	private final LocationService locationService;
 
-	public WorkerController(WorkerService workerService) {
+	public WorkerController(WorkerService workerService, LocationService locationService) {
 		this.workerService = workerService;
+		this.locationService = locationService;
 	}
 
 	@PostMapping("/availability")
@@ -32,5 +36,20 @@ public class WorkerController {
 	@GetMapping("/available")
 	public ResponseEntity<List<WorkerProfile>> getAvailableWorkers(@RequestParam Long categoryId) {
 		return ResponseEntity.ok(workerService.getAvailableWorkersByCategory(categoryId));
+	}
+
+	@GetMapping("/nearby")
+	public ResponseEntity<List<WorkerProfile>> getNearbyWorkers(
+			@RequestParam double lat,
+			@RequestParam double lng,
+			@RequestParam Long categoryId,
+			@RequestParam double radiusKm) {
+		return ResponseEntity.ok(locationService.getNearbyWorkers(lat, lng, categoryId, radiusKm));
+	}
+
+	@PostMapping("/profile/create")
+	public ResponseEntity<WorkerProfile> createWorkerProfile(@Valid @RequestBody WorkerProfileCreateRequest request) {
+		WorkerProfile workerProfile = workerService.createWorkerProfile(request.getUserId(), request.getCategoryId());
+		return ResponseEntity.status(201).body(workerProfile);
 	}
 }
