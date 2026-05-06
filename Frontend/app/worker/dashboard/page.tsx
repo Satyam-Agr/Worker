@@ -6,11 +6,31 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/contexts/auth-context"
-import { workerApi, locationApi, jobApi, type Job } from "@/lib/api"
+import { workerApi, locationApi, jobApi, type Job, type JobStatus } from "@/lib/api"
 import { toast } from "sonner"
-import { LogOut, MapPin, Briefcase } from "lucide-react"
+import { LogOut, MapPin, Briefcase, ChevronRight } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
+
+function StatusBadge({ status }: { status: JobStatus }) {
+  const statusConfig: Record<JobStatus, { className: string; label: string }> = {
+    REQUESTED: { className: "bg-yellow-100 text-yellow-800 border-yellow-200", label: "Requested" },
+    ACCEPTED: { className: "bg-blue-100 text-blue-800 border-blue-200", label: "Accepted" },
+    STARTED: { className: "bg-orange-100 text-orange-800 border-orange-200", label: "In Progress" },
+    COMPLETED: { className: "bg-green-100 text-green-800 border-green-200", label: "Completed" },
+    CANCELLED: { className: "bg-red-100 text-red-800 border-red-200", label: "Cancelled" },
+    REJECTED: { className: "bg-gray-100 text-gray-800 border-gray-200", label: "Rejected" },
+  }
+
+  const config = statusConfig[status] || { className: "bg-gray-100 text-gray-800", label: status }
+
+  return (
+    <Badge variant="outline" className={config.className}>
+      {config.label}
+    </Badge>
+  )
+}
 
 export default function WorkerDashboardPage() {
   const [isAvailable, setIsAvailable] = useState(false)
@@ -95,23 +115,6 @@ export default function WorkerDashboardPage() {
   async function handleLogout() {
     await logout()
     router.push("/")
-  }
-
-  function getStatusColor(status: string) {
-    switch (status) {
-      case "COMPLETED":
-        return "text-green-600"
-      case "REQUESTED":
-        return "text-yellow-600"
-      case "IN_PROGRESS":
-        return "text-blue-600"
-      case "PENDING":
-        return "text-yellow-600"
-      case "CANCELLED":
-        return "text-red-600"
-      default:
-        return "text-muted-foreground"
-    }
   }
 
   if (!user) {
@@ -209,19 +212,31 @@ export default function WorkerDashboardPage() {
                 {jobs.map((job) => (
                   <div
                     key={job.id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
+                    className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-accent/50 transition-colors"
+                    onClick={() => router.push(`/jobs/${job.id}`)}
                   >
-                    <div className="flex flex-col gap-1">
-                      <span className="font-medium">Job #{job.id}</span>
+                    <div className="flex flex-col gap-1 flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{job.categoryName || `Job #${job.id}`}</span>
+                        <StatusBadge status={job.status} />
+                      </div>
+                      {job.description && (
+                        <p className="text-sm text-muted-foreground truncate">
+                          {job.description}
+                        </p>
+                      )}
+                      {job.customerName && (
+                        <span className="text-sm text-muted-foreground">
+                          Customer: {job.customerName}
+                        </span>
+                      )}
                       {job.price && (
-                        <span className="text-muted-foreground">
+                        <span className="text-sm font-medium">
                           Rs. {job.price}
                         </span>
                       )}
                     </div>
-                    <span className={`font-semibold ${getStatusColor(job.status)}`}>
-                      {job.status}
-                    </span>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                   </div>
                 ))}
               </div>

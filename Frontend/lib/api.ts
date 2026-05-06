@@ -88,10 +88,28 @@ export const locationApi = {
 
 // Job APIs
 export const jobApi = {
-  create: (customerId: number, workerId: number, categoryId: number) =>
-    api<Job>("/job/create", { method: "POST", body: { customerId, workerId, categoryId } }),
+  create: (customerId: number, workerId: number, categoryId: number, description?: string) =>
+    api<BackendJob>("/job/create", { method: "POST", body: { customerId, workerId, categoryId, description } }).then(mapJob),
   getByUser: (userId: number) =>
     api<BackendJob[]>(`/job/user/${userId}`).then((jobs) => jobs.map(mapJob)),
+  cancel: (jobId: number, userId: number) =>
+    api<BackendJob>("/job/cancel", { method: "PUT", body: { jobId, userId } }).then(mapJob),
+  reject: (jobId: number, workerId: number) =>
+    api<BackendJob>("/job/reject", { method: "PUT", body: { jobId, workerId } }).then(mapJob),
+  start: (jobId: number, workerId: number) =>
+    api<BackendJob>("/job/start", { method: "PUT", body: { jobId, workerId } }).then(mapJob),
+  complete: (jobId: number, workerId: number) =>
+    api<BackendJob>("/job/complete", { method: "PUT", body: { jobId, workerId } }).then(mapJob),
+  updateStatus: (jobId: number, status: JobStatus, userId?: number) =>
+    api<BackendJob>("/job/status", { method: "PUT", body: { jobId, status, userId } }).then(mapJob),
+}
+
+// Review APIs
+export const reviewApi = {
+  create: (jobId: number, reviewerId: number, rating: number, comment?: string) =>
+    api<Review>("/review/create", { method: "POST", body: { jobId, reviewerId, rating, comment } }),
+  getByUser: (userId: number) =>
+    api<Review[]>(`/review/user/${userId}`),
 }
 
 // Types
@@ -128,16 +146,33 @@ export interface WorkerProfile {
   totalJobs: number
 }
 
+export type JobStatus = "REQUESTED" | "ACCEPTED" | "REJECTED" | "CANCELLED" | "STARTED" | "COMPLETED"
+
 export interface Job {
   id: number
   customerId: number
   workerId: number
   workerName?: string
+  workerPhone?: string
   customerName?: string
+  customerPhone?: string
   categoryName?: string
   categoryId: number
-  status: "REQUESTED" | "ACCEPTED" | "COMPLETED" | "CANCELLED"
+  status: JobStatus
   price?: number
+  description?: string
+  createdAt?: string
+  startedAt?: string | null
+  completedAt?: string | null
+}
+
+export interface Review {
+  id: number
+  job: { id: number }
+  reviewer: { id: number; name: string }
+  reviewee: { id: number; name: string }
+  rating: number
+  comment?: string
 }
 
 interface BackendWorkerProfile {
@@ -155,8 +190,12 @@ interface BackendJob {
   customer: User
   worker: User | null
   category: Category
-  status: "REQUESTED" | "ACCEPTED" | "COMPLETED" | "CANCELLED"
+  status: JobStatus
   price?: number
+  description?: string
+  createdAt?: string
+  startedAt?: string | null
+  completedAt?: string | null
 }
 
 function getAvailability(profile: BackendWorkerProfile): boolean {
@@ -194,10 +233,16 @@ function mapJob(job: BackendJob): Job {
     customerId: job.customer.id,
     workerId: job.worker?.id ?? 0,
     workerName: job.worker?.name,
+    workerPhone: job.worker?.phone,
     customerName: job.customer.name,
+    customerPhone: job.customer.phone,
     categoryId: job.category.id,
     categoryName: job.category.name,
     status: job.status,
     price: job.price,
+    description: job.description,
+    createdAt: job.createdAt,
+    startedAt: job.startedAt,
+    completedAt: job.completedAt,
   }
 }
