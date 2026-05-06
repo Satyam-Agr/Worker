@@ -2,9 +2,17 @@
 
 import { useEffect, useState, useCallback, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
 import { useAuth } from "@/contexts/auth-context"
 import { workerApi, jobApi, type Worker } from "@/lib/api"
 import { toast } from "sonner"
@@ -16,6 +24,9 @@ function SearchContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [hiringWorkerId, setHiringWorkerId] = useState<number | null>(null)
   const [locationError, setLocationError] = useState<string | null>(null)
+  const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null)
+  const [description, setDescription] = useState("")
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
   const { user } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -63,14 +74,21 @@ function SearchContent() {
     }
   }, [user, router, categoryId, searchWorkers])
 
-  async function handleHire(worker: Worker) {
-    if (!user || !categoryId) return
+  function openHireDialog(worker: Worker) {
+    setSelectedWorker(worker)
+    setDescription("")
+    setIsDialogOpen(true)
+  }
 
-    setHiringWorkerId(worker.id)
+  async function handleConfirmHire() {
+    if (!user || !categoryId || !selectedWorker) return
+
+    setHiringWorkerId(selectedWorker.id)
 
     try {
-      await jobApi.create(user.id, worker.id, parseInt(categoryId))
-      toast.success(`Successfully hired ${worker.name}!`)
+      await jobApi.create(user.id, selectedWorker.id, parseInt(categoryId), description || undefined)
+      toast.success(`Successfully hired ${selectedWorker.name}!`)
+      setIsDialogOpen(false)
       router.push("/jobs")
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to hire worker")
@@ -143,12 +161,8 @@ function SearchContent() {
                   <Button
                     size="lg"
                     className="h-14 px-6 text-lg font-semibold"
-                    onClick={() => handleHire(worker)}
-                    disabled={hiringWorkerId === worker.id}
+                    onClick={() => openHireDialog(worker)}
                   >
-                    {hiringWorkerId === worker.id ? (
-                      <Spinner className="mr-2" />
-                    ) : null}
                     Hire
                   </Button>
                 </CardContent>
@@ -157,6 +171,45 @@ function SearchContent() {
           </div>
         )}
       </div>
+
+      {/* Hire Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Hire {selectedWorker?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-4">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="description" className="text-sm font-medium">
+                Describe the work
+              </label>
+              <Textarea
+                id="description"
+                placeholder="e.g., Kitchen deep clean, 3 rooms to clean..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsDialogOpen(false)}
+              disabled={hiringWorkerId !== null}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmHire}
+              disabled={hiringWorkerId !== null}
+            >
+              {hiringWorkerId !== null && <Spinner className="mr-2" />}
+              Confirm Hire
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   )
 }
