@@ -45,29 +45,11 @@ export default function WorkerDashboardPage() {
     if (!user) return
     
     try {
-      // Fetch jobs
       const jobsData = await jobApi.getByUser(user.id)
       setJobs(jobsData)
-      
-      // Fetch current availability by calling the API with the current state
-      // This is a workaround since there's no direct GET endpoint for worker profile
-      // We'll get the availability from the response
-      try {
-        // First try to get availability by setting it to its current value (no-op)
-        // Since we don't know the current value, we'll query with false and read the response
-        const profile = await workerApi.setAvailability(user.id, false)
-        // If we got here, the profile exists. Now set to whatever the backend says
-        // Actually, we need to do a second call to restore the correct state
-        // Let's just read the availability from the response
-        setIsAvailable(profile.available)
-        // If it was actually available, restore it
-        if (profile.available) {
-          setIsAvailable(true)
-        }
-      } catch {
-        // If this fails, the worker profile might not exist yet
-        // Keep default state of false (offline)
-      }
+
+      const profile = await workerApi.getProfile(user.id)
+      setIsAvailable(profile.available)
     } catch {
       toast.error("Failed to load jobs")
     } finally {
@@ -86,8 +68,8 @@ export default function WorkerDashboardPage() {
       return
     }
 
-    fetchJobs()
-  }, [user, router, fetchJobs])
+    fetchInitialData()
+  }, [user, router, fetchInitialData])
 
   async function handleToggleAvailability() {
     if (!user) return

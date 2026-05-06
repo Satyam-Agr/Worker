@@ -38,6 +38,11 @@ public class WorkerController {
 		return ResponseEntity.ok(workerService.getAvailableWorkersByCategory(categoryId));
 	}
 
+	@GetMapping("/profile")
+	public ResponseEntity<WorkerProfile> getWorkerProfile(@RequestParam Long userId) {
+		return ResponseEntity.ok(workerService.getWorkerProfileByUserId(userId));
+	}
+
 	@GetMapping("/nearby")
 	public ResponseEntity<List<WorkerProfile>> getNearbyWorkers(
 			@RequestParam double lat,

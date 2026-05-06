@@ -38,6 +38,11 @@ public class WorkerService {
 		return workerProfileRepository.findByCategoryIdAndIsAvailableTrue(categoryId);
 	}
 
+	public WorkerProfile getWorkerProfileByUserId(Long userId) {
+		return workerProfileRepository.findByUserId(userId)
+				.orElseThrow(() -> new IllegalArgumentException("Worker profile not found for user id: " + userId));
+	}
+
 	public WorkerProfile createWorkerProfile(Long userId, Long categoryId) {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));

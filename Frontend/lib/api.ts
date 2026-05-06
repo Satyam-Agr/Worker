@@ -66,6 +66,8 @@ export const categoryApi = {
 
 // Worker APIs
 export const workerApi = {
+  getProfile: (userId: number) =>
+    api<BackendWorkerProfile>(`/worker/profile?userId=${userId}`).then(mapWorkerProfile),
   getNearby: (lat: number, lng: number, categoryId: number, radiusKm = 10) =>
     api<BackendWorkerProfile[]>(`/worker/nearby?lat=${lat}&lng=${lng}&categoryId=${categoryId}&radiusKm=${radiusKm}`).then(
       (profiles) => profiles.map(mapWorkerFromProfile),

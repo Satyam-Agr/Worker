@@ -151,19 +151,26 @@ function SearchContent() {
               <Card key={worker.id}>
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="flex flex-col gap-1">
-                    <span className="text-lg font-semibold">{worker.name}</span>
-                    <span className="text-muted-foreground">{worker.category}</span>
-                    <div className="flex items-center gap-1 text-sm">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span>{worker.rating?.toFixed(1) || "New"}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-semibold">{worker.name}</span>
+                      <div className="flex items-center gap-1 text-sm">
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <span>{worker.rating?.toFixed(1) || "New"}</span>
+                      </div>
                     </div>
+                    <span className="text-muted-foreground">{worker.category}</span>
+                    {typeof worker.totalJobs === "number" && (
+                      <span className="text-sm text-muted-foreground">
+                        {worker.totalJobs} jobs completed
+                      </span>
+                    )}
                   </div>
                   <Button
                     size="lg"
                     className="h-14 px-6 text-lg font-semibold"
                     onClick={() => openHireDialog(worker)}
                   >
-                    Hire
+                    View & Hire
                   </Button>
                 </CardContent>
               </Card>
@@ -176,9 +183,31 @@ function SearchContent() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Hire {selectedWorker?.name}</DialogTitle>
+            <DialogTitle>Worker Details</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-4 py-4">
+            {selectedWorker && (
+              <Card>
+                <CardContent className="p-4 flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-semibold">{selectedWorker.name}</span>
+                    <div className="flex items-center gap-1 text-sm">
+                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      <span>{selectedWorker.rating?.toFixed(1) || "New"}</span>
+                    </div>
+                  </div>
+                  <span className="text-muted-foreground">{selectedWorker.category}</span>
+                  {selectedWorker.phone && (
+                    <span className="text-sm text-muted-foreground">Phone: {selectedWorker.phone}</span>
+                  )}
+                  {typeof selectedWorker.totalJobs === "number" && (
+                    <span className="text-sm text-muted-foreground">
+                      Completed Jobs: {selectedWorker.totalJobs}
+                    </span>
+                  )}
+                </CardContent>
+              </Card>
+            )}
             <div className="flex flex-col gap-2">
               <label htmlFor="description" className="text-sm font-medium">
                 Describe the work

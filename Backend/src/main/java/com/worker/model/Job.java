@@ -45,7 +45,7 @@ public class Job {
 	private Category category;
 
 	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
+	@Column(nullable = false, length = 32, columnDefinition = "varchar(32)")
 	private JobStatus status = JobStatus.REQUESTED;
 
 	@Column(nullable = false)
