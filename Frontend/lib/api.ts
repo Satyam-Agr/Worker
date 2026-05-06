@@ -70,8 +70,16 @@ export const workerApi = {
     api<BackendWorkerProfile[]>(`/worker/nearby?lat=${lat}&lng=${lng}&categoryId=${categoryId}&radiusKm=${radiusKm}`).then(
       (profiles) => profiles.map(mapWorkerFromProfile),
     ),
+  getNearbyProfiles: (lat: number, lng: number, categoryId: number, radiusKm = 10) =>
+    api<BackendWorkerProfile[]>(`/worker/nearby?lat=${lat}&lng=${lng}&categoryId=${categoryId}&radiusKm=${radiusKm}`).then(
+      (profiles) => profiles.map(mapWorkerProfileWithUser),
+    ),
   createProfile: (userId: number, categoryId: number) =>
     api<BackendWorkerProfile>("/worker/profile/create", { method: "POST", body: { userId, categoryId } }).then(
+      mapWorkerProfile,
+    ),
+  setAvailability: (userId: number, isAvailable: boolean) =>
+    api<BackendWorkerProfile>("/worker/availability", { method: "POST", body: { userId, isAvailable } }).then(
       mapWorkerProfile,
     ),
   toggleAvailability: (userId: number, isAvailable: boolean) =>
@@ -130,6 +138,7 @@ export interface Category {
 export interface Worker {
   id: number
   name: string
+  phone?: string
   category: string
   categoryId: number
   rating: number
@@ -208,6 +217,20 @@ function mapWorkerFromProfile(profile: BackendWorkerProfile): Worker {
   return {
     id: profile.user.id,
     name: profile.user.name,
+    phone: profile.user.phone,
+    category: profile.category.name,
+    categoryId: profile.category.id,
+    rating: profile.rating,
+    totalJobs: profile.totalJobs,
+    available: getAvailability(profile),
+  }
+}
+
+function mapWorkerProfileWithUser(profile: BackendWorkerProfile): Worker {
+  return {
+    id: profile.user.id,
+    name: profile.user.name,
+    phone: profile.user.phone,
     category: profile.category.name,
     categoryId: profile.category.id,
     rating: profile.rating,
