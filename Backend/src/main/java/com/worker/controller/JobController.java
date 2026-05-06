@@ -1,6 +1,10 @@
 package com.worker.controller;
 
 import com.worker.dto.JobCreateRequest;
+import com.worker.dto.JobCancelRequest;
+import com.worker.dto.JobCompleteRequest;
+import com.worker.dto.JobRejectRequest;
+import com.worker.dto.JobStartRequest;
 import com.worker.dto.JobStatusUpdateRequest;
 import com.worker.model.Job;
 import com.worker.service.JobService;
@@ -33,7 +37,30 @@ public class JobController {
 
 	@PutMapping("/status")
 	public ResponseEntity<Job> updateJobStatus(@Valid @RequestBody JobStatusUpdateRequest request) {
-		return ResponseEntity.ok(jobService.updateJobStatus(request.getJobId(), request.getStatus().name()));
+		return ResponseEntity.ok(jobService.updateJobStatus(
+				request.getJobId(),
+				request.getStatus().name(),
+				request.getUserId()));
+	}
+
+	@PutMapping("/reject")
+	public ResponseEntity<Job> rejectJob(@Valid @RequestBody JobRejectRequest request) {
+		return ResponseEntity.ok(jobService.rejectJob(request.getJobId(), request.getWorkerId()));
+	}
+
+	@PutMapping("/start")
+	public ResponseEntity<Job> startJob(@Valid @RequestBody JobStartRequest request) {
+		return ResponseEntity.ok(jobService.startJob(request.getJobId(), request.getWorkerId()));
+	}
+
+	@PutMapping("/complete")
+	public ResponseEntity<Job> completeJob(@Valid @RequestBody JobCompleteRequest request) {
+		return ResponseEntity.ok(jobService.completeJob(request.getJobId(), request.getWorkerId()));
+	}
+
+	@PutMapping("/cancel")
+	public ResponseEntity<Job> cancelJob(@Valid @RequestBody JobCancelRequest request) {
+		return ResponseEntity.ok(jobService.cancelJob(request.getJobId(), request.getUserId()));
 	}
 
 	@GetMapping("/user/{id}")

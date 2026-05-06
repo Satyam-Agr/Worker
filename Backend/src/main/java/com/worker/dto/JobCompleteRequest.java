@@ -10,16 +10,11 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class JobCreateRequest {
+public class JobCompleteRequest {
 
 	@NotNull
-	private Long customerId;
+	private Long jobId;
 
 	@NotNull
 	private Long workerId;
-
-	@NotNull
-	private Long categoryId;
-
-	private String description;
 }

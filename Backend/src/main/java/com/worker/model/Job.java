@@ -51,8 +51,15 @@ public class Job {
 	@Column(nullable = false)
 	private BigDecimal price;
 
+	@Column(length = 1000)
+	private String description;
+
 	@Column(nullable = false, updatable = false)
 	private LocalDateTime createdAt;
+
+	private LocalDateTime startedAt;
+
+	private LocalDateTime completedAt;
 
 	@PrePersist
 	protected void onCreate() {

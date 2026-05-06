@@ -18,4 +18,6 @@ public class JobStatusUpdateRequest {
 
 	@NotNull
 	private JobStatus status;
+
+	private Long userId;
 }

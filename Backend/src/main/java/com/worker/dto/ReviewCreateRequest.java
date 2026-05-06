@@ -1,5 +1,7 @@
 package com.worker.dto;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,16 +12,18 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class JobCreateRequest {
+public class ReviewCreateRequest {
 
 	@NotNull
-	private Long customerId;
+	private Long jobId;
 
 	@NotNull
-	private Long workerId;
+	private Long reviewerId;
 
 	@NotNull
-	private Long categoryId;
+	@Min(1)
+	@Max(5)
+	private Integer rating;
 
-	private String description;
+	private String comment;
 }
