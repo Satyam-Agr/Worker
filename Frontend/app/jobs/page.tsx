@@ -69,7 +69,12 @@ export default function JobsPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push("/home")}
+            onClick={() => {
+              if(user.role === "WORKER")
+                router.push("/worker/dashboard")
+              else
+                router.push("/home")
+            }}
             aria-label="Go back"
           >
             <ArrowLeft className="h-6 w-6" />
@@ -98,7 +103,12 @@ export default function JobsPage() {
                   Browse services and hire a worker to get started
                 </p>
               </div>
-              <Button onClick={() => router.push("/home")}>
+              <Button onClick={() => {
+                if(user.role === "WORKER")
+                  router.push("/worker/dashboard")
+                else
+                  router.push("/home")
+              }}>
                 Browse Services
               </Button>
             </CardContent>

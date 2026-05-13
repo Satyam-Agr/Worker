@@ -36,3 +36,4 @@ Backend/target/
 *.iml
 .DS_Store
 Thumbs.db
+FRONTEND_API_MAP.md

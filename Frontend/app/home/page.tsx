@@ -21,6 +21,10 @@ export default function HomePage() {
       router.push("/login")
       return
     }
+    if (user.role !== "CUSTOMER") {
+      router.push("/worker/dashboard")
+      return
+    }
 
     async function fetchCategories() {
       try {

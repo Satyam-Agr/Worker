@@ -6,11 +6,25 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "app.cors")
 public class CorsProperties {
 
-	private List<String> allowedOrigins = List.of("*");
-	private List<String> allowedMethods = List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
+	private List<String> allowedOrigins = List.of(
+		"http://localhost:3000",
+    	"http://127.0.0.1:3000"
+	);
+
+	private List<String> allowedMethods = List.of(
+		"GET",
+		"POST",
+		"PUT",
+		"PATCH",
+		"DELETE",
+		"OPTIONS"
+	);
+
 	private List<String> allowedHeaders = List.of("*");
+
 	private List<String> exposedHeaders = List.of();
-	private boolean allowCredentials = false;
+
+	private boolean allowCredentials = true;
 
 	public List<String> getAllowedOrigins() {
 		return allowedOrigins;

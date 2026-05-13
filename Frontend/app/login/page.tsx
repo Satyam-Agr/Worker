@@ -31,6 +31,7 @@ export default function LoginPage() {
       console.log("[v0] Attempting login with phone:", phone)
       const user = await authApi.login(phone)
       console.log("[v0] Login successful, user:", user)
+      //TODO store in local storage
       setUser(user)
       toast.success("Login successful!")
       
